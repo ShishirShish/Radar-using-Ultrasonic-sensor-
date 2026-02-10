@@ -1,0 +1,61 @@
+#include <Servo.h>
+
+#define TRIG_PIN 9
+#define ECHO_PIN 10
+#define SERVO_PIN 6
+
+Servo radarServo;
+
+long duration;
+int distance;
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  radarServo.attach(SERVO_PIN);
+  Serial.begin(9600);
+}
+
+int getDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  duration = pulseIn(ECHO_PIN, HIGH, 30000); // 30ms timeout
+  distance = duration * 0.034 / 2;
+
+  if (distance > 200 || distance == 0)
+    distance = 200;
+
+  return distance;
+}
+
+void loop() {
+  // Sweep 0 → 180
+  for (int angle = 15; angle <= 165; angle++) {
+    radarServo.write(angle);
+    delay(25);
+
+    distance = getDistance();
+    Serial.print(angle);
+    Serial.print(",");
+    Serial.print(distance);
+    Serial.print(".");
+  }
+
+  // Sweep 180 → 0
+  for (int angle = 165; angle >= 15; angle--) {
+    radarServo.write(angle);
+    delay(25);
+
+    distance = getDistance();
+    Serial.print(angle);
+    Serial.print(",");
+    Serial.print(distance);
+    Serial.print(".");
+  }
+}

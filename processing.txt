@@ -1,0 +1,61 @@
+import processing.serial.*;
+
+Serial myPort;
+String data = "";
+int angle = 0;
+int distance = 0;
+
+void setup() {
+  size(800, 800);
+  smooth();
+
+  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort.bufferUntil('.');
+}
+
+void draw() {
+  background(0);
+  translate(width/2, height/2);
+
+  drawRadar();
+  drawLine();
+  drawObject();
+}
+
+void serialEvent(Serial myPort) {
+  data = myPort.readStringUntil('.');
+  data = data.substring(0, data.length()-1);
+
+  String[] values = split(data, ',');
+  angle = int(values[0]);
+  distance = int(values[1]);
+}
+
+void drawRadar() {
+  stroke(0, 255, 0);
+  noFill();
+
+  for (int i = 1; i <= 4; i++) {
+    arc(0, 0, i*200, i*200, PI, TWO_PI);
+  }
+
+  for (int i = 0; i <= 180; i += 30) {
+    float rad = radians(i);
+    line(0, 0, 400*cos(rad), -400*sin(rad));
+  }
+}
+
+void drawLine() {
+  stroke(0, 255, 0);
+  float rad = radians(angle);
+  line(0, 0, 400*cos(rad), -400*sin(rad));
+}
+
+void drawObject() {
+  if (distance < 200) {
+    stroke(255, 0, 0);
+    float rad = radians(angle);
+    float d = map(distance, 0, 200, 0, 400);
+    ellipse(d*cos(rad), -d*sin(rad), 10, 10);
+  }
+}
